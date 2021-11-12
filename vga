@@ -1,0 +1,38 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+entity vga is
+Port (clk_100: in std_logic;
+      vga_hs, vga_vs: out std_logic;
+      vga_r, vga_g, vga_b: out std_logic_vector(3 downto 0);
+      trig: out std_logic_vector(1 downto 0);
+      echo: in std_logic_vector(1 downto 0);
+      reset: in std_logic;
+      servom: OUT STD_LOGIC
+      );
+end vga;
+architecture Behavioral of vga is
+signal clk_25 : std_logic;
+constant count_max : integer := 2000000; --50 Hz clock for SG-90
+constant duty_max : integer := 240000; -- 2 ms duty cycle for +90 degree
+constant duty_min : integer := 60000; -- 1 ms duty cycle for -90 degree
+constant duty_delta : integer := 500; 
+component sync
+Port(clk_25: in std_logic;
+     hsync, vsync: out std_logic;
+     R,G,B: out std_logic_vector(3 downto 0);
+     trig: out std_logic_vector(1 downto 0);
+     echo: in std_logic_vector(1 downto 0);
+     reset : IN  STD_LOGIC;
+     servom : OUT STD_LOGIC;
+     clk_100: in std_logic
+     );
+end component;
+component clk_divider
+Port ( clk_in : in STD_LOGIC;
+       clk_out : out STD_LOGIC);
+end component;
+begin
+sync_inst : sync  port map(clk_25 => clk_25, hsync => vga_hs, vsync => vga_vs, R => vga_r, G => vga_g, B => vga_b, trig => trig, echo => echo, reset => reset, servom => servom, clk_100 => clk_100);
+clk_dvd_inst : clk_divider port map(clk_in => clk_100, clk_out => clk_25);
+end Behavioral;

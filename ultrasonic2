@@ -1,0 +1,48 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.NUMERIC_STD.ALL;
+entity ultrasonic2 is
+  Port (clk: in STD_LOGIC;
+        trig: out STD_LOGIC;
+        echo: in STD_LOGIC;
+        clr: in STD_LOGIC;
+        echo_timer :inout integer;
+        motorr: out STD_LOGIC_VECTOR(1 downto 0));
+end ultrasonic2;
+architecture rtl of ultrasonic2 is
+    begin
+  process(clk,clr)
+    variable c1,c2: integer:=0;
+    variable y :std_logic:='1';
+  begin
+    if clr = '1' then
+        motorr <= "00";
+    elsif rising_edge(clk) then
+
+        if(c1=0) then
+            trig<='1';
+        elsif(c1=500) then--100us
+            trig<='0';
+            y:='1';
+        elsif(c1=5000000) then-- 100 ms
+            c1:=0;
+            trig<='1';
+        end if;
+        c1:=c1+1;
+        if(echo = '1') then
+            c2:=c2+1;
+        elsif(echo = '0' and y='1' ) then-- I change the y to not get echo_time =0;   
+            echo_timer<= c2;
+            c2:=0;
+            y:='0';
+        end if;
+        if(echo_timer < 37500) then--15 cm
+            motorr<="11";
+        elsif(echo_timer > 62500)then--25 cm
+            motorr<="00";
+        else-- between  
+            motorr<="01";
+        end if;
+    end if; 
+end process ;
+end architecture;
